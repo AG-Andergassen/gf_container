@@ -186,7 +186,7 @@ boost::mpl::true_ { };
 // --------------- Abs and Norm
 
    template< typename gf_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type abs( const gf_t_& lhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type abs( const gf_t_& lhs )
 {
    using std::abs; 
 
@@ -197,7 +197,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type abs( const gf_t_& lhs )
 }
 
    template< typename gf_t_ >
-double norm( boost::enable_if< is_gf< gf_t_ >, const gf_t& >::type lhs )
+double norm( typename boost::enable_if< is_gf< gf_t_ >, const gf_t_& >::type lhs )
 {
    gf_t_ gf_abs = abs( lhs ); 
    return *( std::max_element( gf_abs.begin(), lhs.end() ) ); 
@@ -209,7 +209,7 @@ double norm( boost::enable_if< is_gf< gf_t_ >, const gf_t& >::type lhs )
 
 /// -gf
    template< typename gf_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator-( const gf_t_& lhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator-( const gf_t_& lhs )
 {
    gf_t_ res( lhs ); 
    for( int i = 0; i < lhs.num_elements(); i++ )
@@ -221,7 +221,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator-( const gf_t_& lhs )
 
 /// gf1 += gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator+=( gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator+=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
    for( int i = 0; i < lhs.num_elements(); i++ )
@@ -231,16 +231,16 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator+=( gf_t_& lhs, const gf
 
 /// gf1 + gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator+( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator+( const gf_t_& lhs, const gf_t_& rhs )
 {
    gf_t_ res( lhs ); 
-   res += gf_2; 
+   res += rhs; 
    return res; 
 }
 
 /// gf1 -= gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-=( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator-=( const gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
    for( int i = 0; i < lhs.num_elements(); i++ )
@@ -250,16 +250,16 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-=( const gf_t_& lhs, con
 
 /// gf1 - gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator-( const gf_t_& lhs, const gf_t_& rhs )
 {
    gf_t_ res( lhs ); 
-   res -= gf_2; 
+   res -= rhs; 
    return res; 
 }
 
 /// gf1 *= gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*=( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator*=( const gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
    for( int i = 0; i < lhs.num_elements(); i++ )
@@ -269,16 +269,16 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*=( const gf_t_& lhs, con
 
 /// gf1 * gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator*( const gf_t_& lhs, const gf_t_& rhs )
 {
    gf_t_ res( lhs ); 
-   res *= gf_2; 
+   res *= rhs;  
    return res; 
 }
 
 /// gf1 /= gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator/=( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator/=( const gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
    for( int i = 0; i < lhs.num_elements(); i++ )
@@ -288,10 +288,10 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator/=( const gf_t_& lhs, con
 
 /// gf1 / gf2
    template< typename gf_t_>
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator/( const gf_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator/( const gf_t_& lhs, const gf_t_& rhs )
 {
    gf_t_ res( lhs ); 
-   res /= gf_2; 
+   res /= rhs; 
    return res; 
 }
 
@@ -300,7 +300,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator/( const gf_t_& lhs, cons
 
 /// gf += s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator+=( gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator+=( gf_t_& lhs, const scalar_t_& rhs )
 {
    for( int i = 0; i < lhs.num_elements(); i++ )
       lhs(i) += rhs; 
@@ -309,7 +309,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator+=( gf_t_& lhs, const sc
 
 /// gf + s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator+( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator+( const gf_t_& lhs, const scalar_t_& rhs )
 {
    gf_t_ res( lhs ); 
    res += rhs; 
@@ -318,16 +318,16 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator+( const gf_t_& lhs, cons
 
 /// s + gf
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator+( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator+( const scalar_t_& lhs, const gf_t_& rhs )
 {
-   gf_t_ res( lhs ); 
-   res += rhs; 
+   gf_t_ res( rhs ); 
+   res += lhs; 
    return res; 
 }
 
 /// gf -= s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator-=( gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator-=( gf_t_& lhs, const scalar_t_& rhs )
 {
    for( int i = 0; i < lhs.num_elements(); i++ )
       lhs(i) -= rhs; 
@@ -336,7 +336,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator-=( gf_t_& lhs, const sc
 
 /// gf - s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator-( const gf_t_& lhs, const scalar_t_& rhs )
 {
    gf_t_ res( lhs ); 
    res -= rhs; 
@@ -345,16 +345,16 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-( const gf_t_& lhs, cons
 
 /// s - gf
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator-( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator-( const scalar_t_& lhs,  const gf_t_& rhs )
 {
-   gf_t_ res( lhs ); 
-   res -= rhs; 
+   gf_t_ res( -rhs ); 
+   res += lhs; 
    return res; 
 }
 
 /// gf *= s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator*=( gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator*=( gf_t_& lhs, const scalar_t_& rhs )
 {
    for( int i = 0; i < lhs.num_elements(); i++ )
       lhs(i) *= rhs; 
@@ -363,7 +363,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator*=( gf_t_& lhs, const sc
 
 /// gf * s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator*( const gf_t_& lhs, const scalar_t_& rhs )
 {
    gf_t_ res( lhs ); 
    res *= rhs; 
@@ -372,7 +372,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*( const gf_t_& lhs, cons
 
 /// s * gf
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*( const scalar_t_& lhs, const gf_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator*( const scalar_t_& lhs, const gf_t_& rhs )
 {
    gf_t_ res( rhs ); 
    res *= lhs; 
@@ -381,7 +381,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator*( const scalar_t_& lhs, 
 
 /// gf /= s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator/=( gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_& >::type operator/=( gf_t_& lhs, const scalar_t_& rhs )
 {
    for( int i = 0; i < lhs.num_elements(); i++ )
       lhs(i) /= rhs; 
@@ -390,7 +390,7 @@ boost::enable_if< is_gf< gf_t_ >, gf_t& >::type operator/=( gf_t_& lhs, const sc
 
 /// gf / s
    template< typename gf_t_, typename scalar_t_ >
-boost::enable_if< is_gf< gf_t_ >, gf_t >::type operator/( const gf_t_& lhs, const scalar_t_& rhs )
+typename boost::enable_if< is_gf< gf_t_ >, gf_t_ >::type operator/( const gf_t_& lhs, const scalar_t_& rhs )
 {
    gf_t_ res( lhs ); 
    res /= rhs; 
