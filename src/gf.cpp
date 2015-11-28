@@ -1,8 +1,6 @@
-#include <boost/multi_array.hpp>
-#include <boost/timer/timer.hpp>
-#include <boost/multi_array.hpp>
 #include <iostream>
 #include <complex>
+#include <boost/timer/timer.hpp>
 #include <gf.h>
 
 using namespace std; 
