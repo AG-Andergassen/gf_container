@@ -7,7 +7,7 @@
 
 using namespace std; 
 
-const int N = 400; 
+const int N = 4; 
 
 typedef complex<double> dcomplex; 
 
@@ -32,49 +32,38 @@ int main()
    my_gf.fill_idx_lst( idx_lst ); 
 
    // Consider the element x,y
-   int x = 300;
-   int y = 300; 
+   int x = 3;
+   int y = 3; 
    mygf_t::idx_t idx( { x, y } ); 
 
-   // Access index object with names
+   // Access test
+   cout << " Acess Test " << endl; 
    cout << " idx(w) " << idx( MIXED::w ) << endl; 
-   cout << " idx(W) " << idx( MIXED::W ) << endl; 
-
-   // Acess element 
    cout << " Direct access of gf[x][y] " << my_gf[x][y] << endl; 
    cout << " Acess with idx_t object " << my_gf( idx ) << endl; 
-   cout << " Acess with corresponding pos1d " << my_gf( my_gf.get_pos_1d( idx ) ) << endl; 
+   cout << " Acess with corresponding pos1d " << my_gf( my_gf.get_pos_1d( idx ) ) << endl << endl; 
 
    // Output idx_t type object and check get_pos_1d and get_idx functions
+   cout << " Output Test " << endl; 
    cout << " idx " << idx << endl; 
-   cout << " idx " << my_gf.get_idx( my_gf.get_pos_1d( idx ) ) << endl; 
+   cout << " get_idx( gf.pos_1d( idx ) ) " << my_gf.get_idx( my_gf.get_pos_1d( idx ) ) << endl << endl; 
 
-   // Test sum over all container elements in two different ways
+   cout << " Test sum over all container elements " << endl; 
    double val = 0.0; 
-
-   // .. with direct access
-   {
+   {  // .. with direct access
       boost::timer::auto_cpu_timer t;
       for( int w = -N; w < N; w++ )
 	 for( int W = -N; W < N + 1; W++ )
-	 {
 	    val += my_gf[w][W]; 
-	 }
    }
-
-   cout << " val " << val << endl; 
+   cout << " .. using direct acess gf[][] : " << val << endl;  
    val = 0.0; 
-
-   // .. with idx_t access
-   {
+   {  // .. with idx_t access
       boost::timer::auto_cpu_timer t;
       for( auto idx : idx_lst )
-	 {
-	    val += my_gf( idx ); 
-	 }
+	 val += my_gf( idx ); 
    }
-
-   cout << " val " << val << endl; 
+   cout << " .. using idx acess gf() " << val << endl << endl; 
 
    // -- Access with idx_t of similar gf_t
    using mygf_other_t = gf< int, 2 >;
@@ -83,17 +72,27 @@ int main()
    mygf_t::idx_t cloned_idx( other_idx ); 
    my_gf ( other_idx ); 
 
-   //std::max_element( my_gf.begin(), my_gf.end() ); 
-   cout << " Check symmation " << my_gf[x][y] << endl; 
-   cout << " Direct access of gf[x][y] " << my_gf[x][y] << endl; 
-   my_gf += my_gf; 
-   cout << " After gf+gf " << my_gf[x][y] << endl; 
+   // --  Abs and Norm
+   cout << " my_gf[-1][0] " << my_gf[-1][0] << endl; 
+   cout << " abs(my_gf)[-1][0] " << abs(my_gf)[-1][0] << endl; 
+   cout << " norm(my_gf) " << norm( my_gf )  << endl; 
+
+   // --  Two gf Operators   // generalize such that g<double> + g<int> possible?
+   my_gf += my_gf;     	my_gf + my_gf; 
+   my_gf -= my_gf; 	my_gf - my_gf; 
+   my_gf *= my_gf;     	my_gf * my_gf; 
+   my_gf /= my_gf; 	my_gf / my_gf; 
+
+   // -- Scalar operators
+   my_gf += 1.0;     	my_gf + 1.0;	1.0 + my_gf; 
+   my_gf -= 1.0; 	my_gf - 1.0;    1.0 - my_gf;
+   my_gf *= 1.0;     	my_gf * 1.0;    1.0 * my_gf;
+   my_gf /= 1.0; 	my_gf / 1.0;    
 
    // Example for two-particle vertex
    const int POS_FREQ_COUNT_VERT = 10; 
    const int PATCH_COUNT = 4; 
    const int QN_COUNT = 2; 
-
    enum class I2P{ w1_in, w2_in, w1_out, k1_in, k2_in, k1_out, s1_in, s2_in, s1_out, s2_out }; 
    class gf_2p_t : public gf< dcomplex, 10 >              ///< Container type for two-particle correlation functions
    {
