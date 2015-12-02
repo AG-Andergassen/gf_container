@@ -9,6 +9,26 @@ const int N = 4;
 
 typedef complex<double> dcomplex; 
 
+class gf_1p_t: public gf< double, 1 >
+{
+   public:
+      using base_t = gf< double, 1 >; 
+
+      gf_1p_t():                                                                                                                                                                                                                         
+	 gf< double, 1 >( boost::extents[ffreq(N)] )
+   {}
+}; 
+
+class gf_1p_t_stupid: public gf< double, 1 >
+{
+   public:
+      using base_t = gf< double, 1 >; 
+
+      gf_1p_t():                                                                                                                                                                                                                         
+	 gf< double, 1 >( boost::extents[ffreq(N)] )
+   {}
+}; 
+
 int main()
 {
    cout << " Starting main " << endl; 
@@ -75,17 +95,25 @@ int main()
    cout << " abs(my_gf)[-1][0] " << abs(my_gf)[-1][0] << endl; 
    cout << " norm(my_gf) " << norm( my_gf )  << endl; 
 
-   // --  Two gf Operators   // generalize such that g<double> + g<int> possible?
+   //// --  Two gf Operators   // generalize such that g<double> + g<int> possible?
    my_gf += my_gf;     	my_gf + my_gf; 
    my_gf -= my_gf; 	my_gf - my_gf; 
    my_gf *= my_gf;     	my_gf * my_gf; 
    my_gf /= my_gf; 	my_gf / my_gf; 
 
-   // -- Scalar operators
+   //// -- Scalar operators
    my_gf += 1.0;     	my_gf + 1.0;	1.0 + my_gf; 
    my_gf -= 1.0; 	my_gf - 1.0;    1.0 - my_gf;
    my_gf *= 1.0;     	my_gf * 1.0;    1.0 * my_gf;
    my_gf /= 1.0; 	my_gf / 1.0;    
+
+   // -- Test is_instance_of
+   cout << " is_instance_of_gf< mygf_t > " << is_instance_of_gf< mygf_t >::value << endl; 
+   cout << " is_instance_of_gf< gf_1p_t > " << is_instance_of_gf< gf_1p_t >::value << endl; 
+
+   // -- norm( derived type ) 
+   gf_1p_t gf_1p; 
+   norm( gf_1p ); 
 
    // Example for two-particle vertex
    const int POS_FREQ_COUNT_VERT = 10; 
