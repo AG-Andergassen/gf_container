@@ -19,16 +19,6 @@ class gf_1p_t: public gf< double, 1 >
    {}
 }; 
 
-class gf_1p_t_stupid: public gf< double, 1 >
-{
-   public:
-      using base_t = gf< double, 1 >; 
-
-      gf_1p_t():                                                                                                                                                                                                                         
-	 gf< double, 1 >( boost::extents[ffreq(N)] )
-   {}
-}; 
-
 int main()
 {
    cout << " Starting main " << endl; 
@@ -43,7 +33,8 @@ int main()
    mygf_t my_gf( boost::extents[ffreq(N)][bfreq(N)] ); 
 
    // Initialize values with a lambda function
-   my_gf.init( []( const mygf_t::idx_t& idx )->double{ return idx(0) + N * idx(1); } ); 
+   //my_gf.init( []( const mygf_t::idx_t& idx )->double{ return idx(0) + N * idx(1); } ); 
+   my_gf.init( []( const mygf_t::idx_t& idx )->double{ return 1.0; } ); 
 
    // Fill a vector with all possible indeces
    std::vector< mygf_t::idx_t > idx_lst; 

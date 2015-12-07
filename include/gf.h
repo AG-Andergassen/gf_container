@@ -4,13 +4,14 @@
 #include <vector>
 #include <complex>
 #include <boost/multi_array.hpp>
+#include <boost/type_traits.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/and.hpp>
 
-using extent_range = boost::multi_array_types::extent_range;
-using extent_gen = boost::multi_array_types::extent_gen;
+using boost::multi_array_types::extent_range;
+using boost::multi_array_types::extent_gen;
 
 inline extent_range ffreq( int n )
 {
@@ -168,25 +169,45 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	 return base_t::data(); 
       }
 
-      gf( extents_t idx_ranges ):
-	 base_t( idx_ranges ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( data() ) 
-   {};
-
-      gf( const base_t& boost_arr ):
-	 base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) 
-   {};
-
+      //-- 
       gf( const type& gf_obj ):
 	 base_t( static_cast< const base_t& >(gf_obj) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
    {};
 
-      //gf( base_t&& boost_arr ):
-	 //base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) 
-   //{};
+      gf( type&& gf_obj ):
+	 base_t( std::move( static_cast< base_t& >(gf_obj) ) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( gf_obj.data() ) 
+   {};
 
-      //gf( type&& gf_obj ):
-	 //base_t( static_cast<base_t&&> gf_obj ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
-   //{};
+      type& operator=( const type& gf_obj )
+      {
+	 base_t::operator=( static_cast< const base_t& >(gf_obj) ); 
+	 shape_arr = gf_obj.shape_arr; 
+	 stride_arr = gf_obj.stride_arr; 
+	 idx_bases = gf_obj.idx_bases; 
+	 data_ptr = base_t::data(); 
+      } 
+
+      type& operator=( type&& gf_obj )
+      {
+	 base_t::operator=( std::move( static_cast< base_t& >(gf_obj) ) ); 
+	 shape_arr = gf_obj.shape_arr; 
+	 stride_arr = gf_obj.stride_arr; 
+	 idx_bases = gf_obj.idx_bases; 
+	 data_ptr = gf_obj.data(); 
+      } 
+
+      gf( extents_t idx_ranges ):
+	 base_t( idx_ranges ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( data() ) 
+   {};
+
+      gf( extents_t idx_ranges, init_func_t init_func ):
+	 base_t( idx_ranges ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( data() ) 
+   {
+      (*this).init( init_func ); 
+   };
+
+      //gf( const base_t& boost_arr ): base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) {};
+      //gf( base_t&& boost_arr ): base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) {};
 
    private:
       value_t* data_ptr; 
@@ -199,19 +220,14 @@ struct gf_conversion_tester
 };
 
 template <class test_class>
-struct is_instance_of_gf
-{
-   using type = std::is_convertible<test_class,gf_conversion_tester>;
-   static const bool value = std::is_convertible<test_class,gf_conversion_tester>::value;
-};
+struct is_instance_of_gf: boost::is_convertible<test_class,gf_conversion_tester>
+{}; 
 
 //template< typename gf_t_ >
-//struct is_gf : 
-   //boost::mpl::false_ { };  
+//struct is_gf : std::false_type { };  
 
 //template< typename value_t_, unsigned int ndims_ >
-//struct is_gf< gf< value_t_, ndims_ > > :
-//boost::mpl::true_ { };  
+//struct is_gf< gf< value_t_, ndims_ > > : std::true_type { };  
 
 template <class test_class>
 struct is_scalar : std::false_type
@@ -229,7 +245,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type abs( const 
    using std::abs; 
 
    gf_t_ res( lhs ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       res(i) = abs(res(i)); 
    return res; 
 }
@@ -250,7 +266,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, double >::type norm( cons
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( const gf_t_& lhs )
 {
    gf_t_ res( lhs ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       res(i) = -res(i); 
    return res; 
 }
@@ -262,7 +278,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_& >::type operator+=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) += rhs(i); 
    return lhs; 
 }
@@ -281,7 +297,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator+( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) -= rhs(i); 
    return lhs; 
 }
@@ -300,7 +316,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) *= rhs(i); 
    return lhs; 
 }
@@ -319,7 +335,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) /= rhs(i); 
    return lhs; 
 }
@@ -341,7 +357,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/( 
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator+=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) += rhs; 
    return lhs; 
 }
@@ -371,7 +387,7 @@ operator+( const scalar_t_& lhs, const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator-=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) -= rhs; 
    return lhs; 
 }
@@ -392,7 +408,7 @@ typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scal
 operator-( const scalar_t_& lhs,  const gf_t_& rhs )
 {
    gf_t_ res( -rhs ); 
-   res += rhs; 
+   res += lhs; 
    return res; 
 }
 
@@ -401,7 +417,7 @@ operator-( const scalar_t_& lhs,  const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator*=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) *= rhs; 
    return lhs; 
 }
@@ -431,7 +447,7 @@ operator*( const scalar_t_& lhs, const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator/=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); i++ )
+   for( int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) /= rhs; 
    return lhs; 
 }
