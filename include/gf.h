@@ -9,6 +9,8 @@
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
 
 using boost::multi_array_types::extent_range;
 using boost::multi_array_types::extent_gen;
@@ -90,6 +92,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
       using extents_t = boost::detail::multi_array::extent_gen<ndims_>; 	///< Type of extents object passed at contruction
       using idx_t = idx_obj_t<ndims_>; 
       using type = gf< value_t_, ndims_ >; 
+      using init_func_t = boost::function<value_t ( const idx_t& idx )>; 		///< Initalization function type that returns value_t for a given idx_t object
 
       // -------- Member variables
       const typename base_t::size_type* shape_arr; 			///< Array containing the extent for each dimension
@@ -132,8 +135,6 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	 for( int i = 0; i < base_t::num_elements(); ++i )
 	    idx_lst.push_back( get_idx( i ) ); 
       }
-
-      typedef value_t (*init_func_t)( const idx_t& idx ); 		///< Initalization function type that returns value_t for a given idx_t object
 
       void init( init_func_t init_func )				///< Initializes values with a given initialization function
       {
