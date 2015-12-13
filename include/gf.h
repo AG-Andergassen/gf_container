@@ -140,10 +140,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
       {
 #pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
-	 {
-	    idx_t idx( get_idx( i ) ) ; 
-	    operator()( idx ) = init_func( idx ); 
-	 }
+	    operator()( i ) = init_func( get_idx( i ) ); 
       }
 
       value_t& operator()( const idx_t& idx )				///< Return value of container for given index object
@@ -172,20 +169,21 @@ class gf: public boost::multi_array<value_t_, ndims_>
       }
 
       gf( const type& gf_obj ):
-	 base_t( static_cast< const base_t& >(gf_obj) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
-   {};
+	 base_t( static_cast<const base_t&>(gf_obj) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
+   {}; 
 
       gf( type&& gf_obj ):
-	 base_t( std::move( static_cast< base_t& >(gf_obj) ) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( gf_obj.data() ) 
+	 base_t( std::move( static_cast<base_t&>(gf_obj) ) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
    {};
 
       type& operator=( const type& gf_obj )
       {
-	 base_t::operator=( static_cast< const base_t& >(gf_obj) ); 
+	 base_t::operator=( static_cast<const base_t&>(gf_obj) ); 
 	 shape_arr = gf_obj.shape_arr; 
 	 stride_arr = gf_obj.stride_arr; 
 	 idx_bases = gf_obj.idx_bases; 
 	 data_ptr = base_t::data(); 
+	 return *this; 
       } 
 
       type& operator=( type&& gf_obj )
@@ -194,7 +192,8 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	 shape_arr = gf_obj.shape_arr; 
 	 stride_arr = gf_obj.stride_arr; 
 	 idx_bases = gf_obj.idx_bases; 
-	 data_ptr = gf_obj.data(); 
+	 data_ptr = base_t::data();
+	 return *this; 
       } 
 
       gf( extents_t idx_ranges ):
