@@ -138,6 +138,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
 
       void init( init_func_t init_func )				///< Initializes values with a given initialization function
       {
+#pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
 	 {
 	    idx_t idx( get_idx( i ) ) ; 
@@ -170,7 +171,6 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	 return base_t::data(); 
       }
 
-      //-- 
       gf( const type& gf_obj ):
 	 base_t( static_cast< const base_t& >(gf_obj) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( data() ) 
    {};
@@ -255,7 +255,9 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type abs( const 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, double >::type norm( const gf_t_& lhs )
 {
    gf_t_ gf_abs = abs( lhs ); 
-   return *( std::max_element( gf_abs.origin(), gf_abs.origin() + gf_abs.num_elements() ) ); 
+   using value_t = typename gf_t_::value_t; 
+   //return std::real( *( std::max_element( gf_abs.origin(), gf_abs.origin() + gf_abs.num_elements() ) ) );  
+   return std::real( *( std::max_element( gf_abs.origin(), gf_abs.origin() + gf_abs.num_elements(), []( value_t& a, value_t& b )->bool{ return std::abs(a) < std::abs(b); } ) ) ); 
 }
 
 // -------------- OPERATORS 
@@ -461,4 +463,15 @@ operator/( const gf_t_& lhs, const scalar_t_& rhs )
    gf_t_ res( lhs ); 
    res /= rhs; 
    return res; 
+}
+
+/// ostream << gf
+   template< typename gf_t_ >
+typename boost::enable_if< is_instance_of_gf< gf_t_ >, std::ostream& >::type 
+operator<<( std::ostream& lhs, const gf_t_& rhs )
+{
+   for( int i = 0; i < rhs.num_elements(); ++i )
+      lhs << rhs(i) << " \t "; //std::endl; 
+      //lhs << rhs.get_idx(i) << " : " << rhs(i) << " ;\t "; //std::endl; 
+   return lhs; 
 }
