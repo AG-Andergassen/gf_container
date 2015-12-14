@@ -93,7 +93,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
       using extents_t = boost::detail::multi_array::extent_gen<ndims_>; 	///< Type of extents object passed at contruction
       using idx_t = idx_obj_t<ndims_>; 
       using type = gf< value_t_, ndims_ >; 
-      using init_func_t = boost::function<value_t ( const idx_t& idx )>; 		///< Initalization function type that returns value_t for a given idx_t object
+      using init_func_t = boost::function<value_t ( const idx_t& idx )>; 	///< Initalization function type that returns value_t for a given idx_t object
 
       // -------- Member variables
       const typename base_t::size_type* shape_arr; 			///< Array containing the extent for each dimension
@@ -165,19 +165,19 @@ class gf: public boost::multi_array<value_t_, ndims_>
       }
 
       gf( const type& gf_obj ):
-	 base_t( static_cast<const base_t&>(gf_obj) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( base_t::data() ) 
+	 base_t( static_cast<const base_t&>(gf_obj) ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
    {}; 
 
       gf( type&& gf_obj ):
-	 base_t( std::move( static_cast<base_t&>(gf_obj) ) ), shape_arr( gf_obj.shape_arr ), stride_arr( gf_obj.stride_arr ), idx_bases( gf_obj.idx_bases ), data_ptr( base_t::data() ) 
+	 base_t( std::move( static_cast<base_t&>(gf_obj) ) ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
    {};
 
       type& operator=( const type& gf_obj )
       {
 	 base_t::operator=( static_cast<const base_t&>(gf_obj) ); 
-	 shape_arr = gf_obj.shape_arr; 
-	 stride_arr = gf_obj.stride_arr; 
-	 idx_bases = gf_obj.idx_bases; 
+	 shape_arr = base_t::shape(); 
+	 stride_arr = base_t::strides(); 
+	 idx_bases = base_t::index_bases(); 
 	 data_ptr = base_t::data(); 
 	 return *this; 
       } 
@@ -185,10 +185,10 @@ class gf: public boost::multi_array<value_t_, ndims_>
       type& operator=( type&& gf_obj )
       {
 	 base_t::operator=( std::move( static_cast< base_t& >(gf_obj) ) ); 
-	 shape_arr = gf_obj.shape_arr; 
-	 stride_arr = gf_obj.stride_arr; 
-	 idx_bases = gf_obj.idx_bases; 
-	 data_ptr = base_t::data();
+	 shape_arr = base_t::shape(); 
+	 stride_arr = base_t::strides(); 
+	 idx_bases = base_t::index_bases(); 
+	 data_ptr = base_t::data(); 
 	 return *this; 
       } 
 
@@ -201,9 +201,6 @@ class gf: public boost::multi_array<value_t_, ndims_>
    {
       (*this).init( init_func ); 
    };
-
-      //gf( const base_t& boost_arr ): base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) {};
-      //gf( base_t&& boost_arr ): base_t( boost_arr ), shape_arr( boost_arr.shape() ), stride_arr( boost_arr.strides() ), idx_bases( boost_arr.index_bases() ), data_ptr( data() ) {};
 
    private:
       value_t* data_ptr; 
@@ -249,11 +246,9 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type abs( const 
    template< typename gf_t_ >
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, double >::type norm( const gf_t_& lhs )
 {
-   //gf_t_ gf_abs = abs( lhs ); 
-   gf_t_ gf_abs( lhs ); 
+   gf_t_ gf_abs = abs( lhs ); 
    using value_t = typename gf_t_::value_t; 
-   //return std::real( *( std::max_element( gf_abs.origin(), gf_abs.origin() + gf_abs.num_elements() ) ) );  
-   return std::real( *( std::max_element( gf_abs.origin(), gf_abs.origin() + gf_abs.num_elements(), []( value_t& a, value_t& b )->bool{ return std::abs(a) < std::abs(b); } ) ) ); 
+   return std::real( *( std::max_element( gf_abs.data(), gf_abs.data() + gf_abs.num_elements(), []( value_t& a, value_t& b )->bool{ return std::abs(a) < std::abs(b); } ) ) ); 
 }
 
 // -------------- OPERATORS 
