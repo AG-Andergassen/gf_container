@@ -1,3 +1,13 @@
+
+/******************************************************************************************//** @file
+ *  		
+ * 	file: 		gf.h
+ * 	contents:	Definition of Green function container class based on boost::multi_array
+ * 			and associated index objects
+ * 
+ ****************************************************************************************************/
+
+
 #pragma once
 
 #include <iostream>
