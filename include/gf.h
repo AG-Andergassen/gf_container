@@ -143,13 +143,14 @@ class gf: public boost::multi_array<value_t_, ndims_>
 
       void fill_idx_lst( std::vector<idx_t>& idx_lst )	const		///< Fills a std::vector<idx_t> with all possible sets of indeces
       {
+	 idx_lst.resize( base_t::num_elements() ); 
+
 	 for( int i = 0; i < base_t::num_elements(); ++i )
-	    idx_lst.push_back( get_idx( i ) ); 
+	    idx_lst[i] = get_idx( i ); 
       }
 
       void init( init_func_t init_func )				///< Initializes values with a given initialization function
       {
-#pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
 	    operator()( i ) = init_func( get_idx( i ) ); 
       }
