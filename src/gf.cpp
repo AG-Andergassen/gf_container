@@ -4,6 +4,7 @@
 #include <gf.h>
 
 using namespace std; 
+using namespace std::placeholders; 
 
 const int N = 4; 
 
@@ -32,9 +33,10 @@ int main()
    // Create object with one fermionic and one bosonic frequency
    mygf_t my_gf( boost::extents[ffreq(N)][bfreq(N)] ); 
 
-   // Initialize values with a lambda function
-   //my_gf.init( []( const mygf_t::idx_t& idx )->double{ return idx(0) + N * idx(1); } ); 
+   // Initialize values with lambda function and bind
    my_gf.init( []( const mygf_t::idx_t& idx )->double{ return 1.0; } ); 
+   auto test_bind = std::bind( []( const mygf_t::idx_t& idx, int i )->double{ return 1.0; }, _1, 0 ); 
+   my_gf.init( test_bind ); 
 
    // Fill a vector with all possible indeces
    std::vector< mygf_t::idx_t > idx_lst; 
