@@ -2,20 +2,21 @@
 #include <complex>
 #include <boost/timer/timer.hpp>
 #include <gf.h>
+#include <symmetry_group.h>
 
 using namespace std; 
 
-const int N = 4; 
+const int N = 1; 
 
 typedef complex<double> dcomplex; 
 
-class gf_1p_t: public gf< double, 1 >
+class gf_1p_t: public gf< dcomplex, 1 >
 {
    public:
-      using base_t = gf< double, 1 >; 
+      using base_t = gf< dcomplex, 1 >; 
 
       gf_1p_t():                                                                                                                                                                                                                         
-	 gf< double, 1 >( boost::extents[ffreq(N)] )
+	 gf< dcomplex, 1 >( boost::extents[ffreq(N)] )
    {}
 }; 
 
@@ -27,26 +28,38 @@ int main()
    enum class MIXED{ w, W };
 
    // Double-valued 2-dimensional gf
-   using mygf_t = gf< double, 2 >;
+   using mygf_t = gf< dcomplex, 2 >;
+   using idx_t = mygf_t::idx_t; 
 
    // Create object with one fermionic and one bosonic frequency
    mygf_t my_gf( boost::extents[ffreq(N)][bfreq(N)] ); 
 
-   // Initialize values with a lambda function
-   //my_gf.init( []( const mygf_t::idx_t& idx )->double{ return idx(0) + N * idx(1); } ); 
-   my_gf.init( []( const mygf_t::idx_t& idx )->double{ return 1.0; } ); 
+   // Test initialization
+   cout << endl << " --- Init Test --- " << endl << endl; 
+   auto init_func = []( const idx_t& idx )->dcomplex{ cout << " call "; return idx(1); }; 
+
+   cout << " Simple init: " << endl; 
+   my_gf.init( init_func ); 
+   cout << endl << " GF Values: " << my_gf << endl << endl; 
+
+   my_gf.init( []( const idx_t& idx )->dcomplex{ return 0.0; } ); 
+
+   cout << " Symmetry init: " << endl; 
+   auto sym_func = []( idx_t& idx ){ idx(0) = -idx(0) - 1; return operation( false, false ); }; 
+   symmetry_grp_t<2> sym_grp( my_gf, {sym_func} ); 
+   sym_grp.init( my_gf, []( const idx_t& idx )->dcomplex{ cout << " call "; return idx(1); } ); 
+   cout << endl << " GF Values: " << my_gf << endl << endl; 
 
    // Fill a vector with all possible indeces
-   std::vector< mygf_t::idx_t > idx_lst; 
+   std::vector< idx_t > idx_lst; 
    my_gf.fill_idx_lst( idx_lst ); 
 
-   // Consider the element x,y
-   int x = 3;
-   int y = 3; 
-   mygf_t::idx_t idx( { x, y } ); 
-
    // Access test
-   cout << " Acess Test " << endl; 
+   cout << endl << " --- Acess Test --- " << endl << endl; 
+   // Consider the element x,y
+   int x = 0;
+   int y = 0; 
+   idx_t idx( { x, y } ); 
    cout << " idx(w) " << idx( MIXED::w ) << endl; 
    cout << " Direct access of gf[x][y] " << my_gf[x][y] << endl; 
    cout << " Acess with idx_t object " << my_gf( idx ) << endl; 
@@ -58,7 +71,7 @@ int main()
    cout << " get_idx( gf.pos_1d( idx ) ) " << my_gf.get_idx( my_gf.get_pos_1d( idx ) ) << endl << endl; 
 
    cout << " Test sum over all container elements " << endl; 
-   double val = 0.0; 
+   dcomplex val ( 0.0, 0.0 ); 
    {  // .. with direct access
       boost::timer::auto_cpu_timer t;
       for( int w = -N; w < N; w++ )
@@ -66,7 +79,7 @@ int main()
 	    val += my_gf[w][W]; 
    }
    cout << " .. using direct acess gf[][] : " << val << endl;  
-   val = 0.0; 
+   val = dcomplex( 0.0, 0.0 ); 
    {  // .. with idx_t access
       boost::timer::auto_cpu_timer t;
       for( auto idx : idx_lst )
@@ -78,7 +91,7 @@ int main()
    using mygf_other_t = gf< int, 2 >;
    mygf_other_t my_other_gf( boost::extents[ffreq(N+1)][bfreq(N+1)] ); 
    mygf_other_t::idx_t other_idx( { 0, 0} ); 
-   mygf_t::idx_t cloned_idx( other_idx ); 
+   idx_t cloned_idx( other_idx ); 
    my_gf ( other_idx ); 
 
    // --  Abs and Norm
@@ -86,7 +99,7 @@ int main()
    cout << " abs(my_gf)[-1][0] " << abs(my_gf)[-1][0] << endl; 
    cout << " norm(my_gf) " << norm( my_gf )  << endl; 
 
-   //// --  Two gf Operators   // generalize such that g<double> + g<int> possible?
+   //// --  Two gf Operators   // generalize such that g<dcomplex> + g<int> possible?
    my_gf += my_gf;     	my_gf + my_gf; 
    my_gf -= my_gf; 	my_gf - my_gf; 
    my_gf *= my_gf;     	my_gf * my_gf; 

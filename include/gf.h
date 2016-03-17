@@ -156,6 +156,14 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	    operator()( i ) = init_func( get_idx( i ) ); 
       }
 
+      bool is_valid( const idx_t& idx ) const				///< Return value of container for given index object
+      {
+	 for( int i = 0; i < ndims; ++i )
+	    if( idx(i) >= idx_bases[i] + static_cast<int>(shape_arr[i]) || idx(i) < idx_bases[i] ) // fails without cast as shape_arr contains unsigned
+	       return false;
+	 return true; 
+      }
+
       value_t& operator()( const idx_t& idx )				///< Return value of container for given index object
       {
 	 return data_ptr[ get_pos_1d( idx.idx_arr ) ]; 
@@ -206,6 +214,10 @@ class gf: public boost::multi_array<value_t_, ndims_>
 
       gf( extents_t idx_ranges ):
 	 base_t( idx_ranges ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
+   {};
+
+      gf( const boost::array<size_t, ndims>& idx_range_arr ):
+	 base_t( idx_range_arr ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
    {};
 
       gf( extents_t idx_ranges, init_func_t init_func ):
