@@ -79,16 +79,16 @@ template< unsigned int ndims_ >
 class symmetry_grp_t
 {
    public:
+      using dcomplex = std::complex<double>; 
+
       using idx_t = idx_obj_t<ndims_>; 
       using type = symmetry_grp_t<ndims_>; 
+      using gf_t = gf<dcomplex, ndims_>; 
       using symm_func_t = boost::function<operation ( idx_t& idx )>; 
-      using dcomplex = std::complex<double>; 
-      //template< typename value_t >
       using init_func_t = boost::function<dcomplex ( const idx_t& idx )>; 
 
       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
 
-      //template< typename value_t >
       void init( gf<dcomplex,ndims>& gf_obj, init_func_t init_func )
       {
 #pragma omp parallel for schedule( dynamic )
@@ -123,12 +123,19 @@ class symmetry_grp_t
 	 return *this; 
       }
 
-      //template< typename value_t >
-      symmetry_grp_t( const gf<dcomplex,ndims>& gf_obj, const std::vector< symm_func_t >& symm_lst_ ):
+      symmetry_grp_t( const gf_t& gf_obj, const std::vector< symm_func_t >& symm_lst_ ):
 	 symm_lst(symm_lst_),
-	 shape_arr( reinterpret_cast<const boost::array<size_t, ndims>&>( *(gf_obj.shape_arr) ) ), 
-	 idx_bases( reinterpret_cast<const boost::array<size_t, ndims>&>( *(gf_obj.idx_bases) ) )
+	 shape_arr( reinterpret_cast<const boost::array< boost::multi_array_types::size_type, ndims >& >( *(gf_obj.shape_arr) ) ), 
+	 idx_bases( reinterpret_cast<const boost::array< boost::multi_array_types::index, ndims >& >( *(gf_obj.idx_bases) ) )
    {
+      std::cout << " Initializing symmetry group for container of Length : " << ndims << std::endl; 
+      std::cout << "   Shape: "; 
+      for( int i = 0; i < ndims; ++i )
+	 std::cout << shape_arr[i] << " "; 
+      std::cout << "   Idx_bases: "; 
+      for( int i = 0; i < ndims; ++i )
+	 std::cout << idx_bases[i] << " ";
+
       // For frequencies, consider going out of range with symmetry functions
       for( int i = 0; i < ndims; ++i )
 	 if( idx_bases[i] != 0 ){ shape_arr[i] *= 3; } 
@@ -136,7 +143,7 @@ class symmetry_grp_t
       // Create bool array to track checked elements
       gf< bool, ndims > checked( shape_arr ); 
       checked.reindex( idx_bases ); 
-      checked.init( []( const idx_t& ){ return false; } ); 
+      checked.init( []( const idx_t& idx ){ return false; } ); 
 
       for( long unsigned int iter = 0; iter < gf_obj.num_elements(); ++iter )
       {
@@ -147,26 +154,26 @@ class symmetry_grp_t
 	    checked( idx ) = true;
 	    std::vector< symm_idx_t > current_class { symm_idx_t(iter) }; 	// initialize new symmetry class
 	    operation track_op( false, false );
-	    iterate( idx, gf_obj, track_op, checked, current_class ); 	// start iterating on index 
+	    iterate( idx, gf_obj, track_op, checked, current_class ); 		// start iterating on index 
 	    symm_classes.push_back( current_class );				// Add current symmetry class to list
 	 }
       }
 
-      std::cout << " Symmetries reduction " << 1.0 * symm_classes.size() / gf_obj.num_elements() << std::endl; 
+      std::cout << std::endl << " Symmetries reduction " << 1.0 * symm_classes.size() / gf_obj.num_elements() << std::endl; 
    }
 
    private:
       std::vector< symm_func_t > symm_lst; 
       std::vector< std::vector< symm_idx_t > > symm_classes; 
       boost::array<size_t, ndims> shape_arr; 
-      boost::array<size_t, ndims> idx_bases; 
+      boost::array<long, ndims> idx_bases; 
 
-      //template< typename value_t >
-      void iterate( idx_t idx, const gf<dcomplex,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
+      void iterate( const idx_t& idx_it, const gf<dcomplex,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
       {
 	 for( auto symm: symm_lst ) 				// iterate over list of all symmetries specified
 	 {
-	    operation curr_op = symm( idx ) * track_op;	// apply symmetry operation and track operations applied
+	    idx_t idx = idx_it;					// copy idx
+	    operation curr_op = symm( idx ) * track_op;		// apply symmetry operation and track operations applied
 
 	    if( !checked( idx ) )				// if index not yet checked
 	    { 
