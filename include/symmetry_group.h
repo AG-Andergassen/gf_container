@@ -12,7 +12,7 @@
 #include <gf.h>
 #include <complex>
 #include <iostream>
-
+#include <def.h>
 /**
  *	Set of possible operations after symmetry operation
  */
@@ -48,6 +48,36 @@ class operation : public std::pair<bool, bool>
 
 	 return val; 
       }
+      
+      MatReal operator()( const MatReal val )		///< Apply operation
+      {
+	 if( first )
+	 {
+	    if( second )
+	       return -val.conjugate(); 
+	    return -val; 
+	 }
+
+	 if( second )
+	    return val.conjugate() ; 
+
+	 return val; 
+      }
+      
+      MatPatch operator()( const MatPatch val )		///< Apply operation
+      {
+	 if( first )
+	 {
+	    if( second )
+	       return -val.conjugate(); 
+	    return -val; 
+	 }
+
+	 if( second )
+	    return val.conjugate() ; 
+
+	 return val; 
+      }
 
    private:
 };
@@ -75,31 +105,34 @@ struct symm_idx_t
    {}
 };
 
-template< unsigned int ndims_ >
+template< typename elem_t_, unsigned int ndims_ >
 class symmetry_grp_t
 {
    public:
       using dcomplex = std::complex<double>; 
 
       using idx_t = idx_obj_t<ndims_>; 
-      using type = symmetry_grp_t<ndims_>; 
-      using gf_t = gf<dcomplex, ndims_>; 
+      using type = symmetry_grp_t<elem_t_, ndims_>; 
+      using gf_t = gf<elem_t_, ndims_>; 
       using symm_func_t = boost::function<operation ( idx_t& idx )>; 
-      using init_func_t = boost::function<dcomplex ( const idx_t& idx )>; 
+      using init_func_t = boost::function<elem_t_ ( const idx_t& idx )>; 
 
       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
+//      static constexpr typename elem_t = elem_t_;                     ///< The number of dimensions        
 
-      void init( gf<dcomplex,ndims>& gf_obj, init_func_t init_func )
+      void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
       {
+
 #pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < symm_classes.size(); ++i )
 	 {
-	    dcomplex val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
+	    elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
 	    for( auto symm_idx : symm_classes[i] )
 	       gf_obj( symm_idx.idx ) = symm_idx.oper( val ); 
 	 }
 
       }
+      
 
       symmetry_grp_t( const type& symm_grp ):
 	 symm_lst( symm_grp.symm_lst ), symm_classes( symm_grp.symm_classes )
@@ -157,8 +190,11 @@ class symmetry_grp_t
 	    iterate( idx, gf_obj, track_op, checked, current_class ); 		// start iterating on index 
 	    symm_classes.push_back( current_class );				// Add current symmetry class to list
 	 }
+//	else
+//	   std::cout << std::endl << " Indices " << idx(0) << idx(1) << idx(2) << std::endl; 
       }
-
+      
+      std::cout << std::endl << " Symmetry class size " <<  symm_classes.size() << "gf_obj num elements" << gf_obj.num_elements() << std::endl; 
       std::cout << std::endl << " Symmetries reduction " << 1.0 * symm_classes.size() / gf_obj.num_elements() << std::endl; 
    }
 
@@ -168,7 +204,7 @@ class symmetry_grp_t
       boost::array<size_t, ndims> shape_arr; 
       boost::array<long, ndims> idx_bases; 
 
-      void iterate( const idx_t& idx_it, const gf<dcomplex,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
+      void iterate( const idx_t& idx_it, const gf<elem_t_,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
       {
 	 for( auto symm: symm_lst ) 				// iterate over list of all symmetries specified
 	 {
