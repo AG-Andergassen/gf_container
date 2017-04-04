@@ -82,7 +82,6 @@ class operation : public std::pair<bool, bool>
    private:
 };
 
-
 /**
  *	Elements of vertex tensor. States index of independent coupling array and possible operations on it
  */
