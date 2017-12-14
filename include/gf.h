@@ -102,9 +102,9 @@ class gf: public boost::multi_array<value_t_, ndims_>
       using base_t = boost::multi_array<value_t, ndims_>; 			///< Type of base class
       using extents_t = boost::detail::multi_array::extent_gen<ndims_>; 	///< Type of extents object passed at contruction
       using idx_t = idx_obj_t<ndims_>; 
-      using type = gf< value_t_, ndims_ >; 
+      using type = gf< value_t_, ndims_ >;
       using init_func_t = boost::function<value_t ( const idx_t& idx )>; 	///< Initalization function type that returns value_t for a given idx_t object
-
+      
       // -------- Member variables
       const typename base_t::size_type* shape_arr; 			///< Array containing the extent for each dimension
       const typename base_t::index* stride_arr; 			///< Array containing the stride for each dimension
@@ -149,10 +149,15 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	    idx_lst[i] = get_idx( i ); 
       }
 
-      void init( init_func_t init_func )				///< Initializes values with a given initialization function
+      void init( init_func_t init_func, int  nranks=1, int  myrank=0 )				///< Initializes values with a given initialization function
       {
+#ifdef MPI_PARALLEL
+#pragma omp parallel for schedule( dynamic )
+	 for(int i=myrank; i< base_t::num_elements(); i+=nranks)
+#else
 #pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
+#endif
 	    operator()( i ) = init_func( get_idx( i ) ); 
       }
 

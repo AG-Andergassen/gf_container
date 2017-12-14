@@ -119,11 +119,15 @@ class symmetry_grp_t
       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
 //      static constexpr typename elem_t = elem_t_;                     ///< The number of dimensions        
 
-      void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
+      void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func, int nranks=1, int myrank=0 )
       {
-
+#ifdef MPI_PARALLEL
+#pragma omp parallel for schedule( dynamic )
+	 for( int i = myrank; i < symm_classes.size(); i += nranks )
+#else
 #pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < symm_classes.size(); ++i )
+#endif
 	 {
 	    elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
 	    for( auto symm_idx : symm_classes[i] )
