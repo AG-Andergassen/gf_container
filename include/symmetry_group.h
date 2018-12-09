@@ -119,15 +119,10 @@ class symmetry_grp_t
       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
 //      static constexpr typename elem_t = elem_t_;                     ///< The number of dimensions        
 
-      void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func, int nranks=1, int myrank=0 )
+      void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
       {
-#ifdef MPI_PARALLEL
-#pragma omp parallel for schedule( dynamic )
-	 for( int i = myrank; i < symm_classes.size(); i += nranks )
-#else
 #pragma omp parallel for schedule( dynamic )
 	 for( int i = 0; i < symm_classes.size(); ++i )
-#endif
 	 {
 	    elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
 	    for( auto symm_idx : symm_classes[i] )
@@ -173,11 +168,16 @@ class symmetry_grp_t
 	 std::cout << idx_bases[i] << " ";
 
       // For frequencies, consider going out of range with symmetry functions
-      for( int i = 0; i < ndims; ++i )
-	 if( idx_bases[i] != 0 ){ shape_arr[i] *= 3; } 
+      
+      for( int i = 0; i < ndims; ++i ){
+        if( idx_bases[i] != 0 ){
+            idx_bases[i] *= 2; 
+            shape_arr[i] *= 2; 
+        }
+      } 
 
       // Create bool array to track checked elements
-      gf< bool, ndims > checked( shape_arr ); 
+      gf< bool, ndims > checked( shape_arr );
       checked.reindex( idx_bases ); 
       checked.init( []( const idx_t& idx ){ return false; } ); 
 
@@ -197,7 +197,7 @@ class symmetry_grp_t
 //	   std::cout << std::endl << " Indices " << idx(0) << idx(1) << idx(2) << std::endl; 
       }
       
-      std::cout << std::endl << " Symmetry class size " <<  symm_classes.size() << "gf_obj num elements" << gf_obj.num_elements() << std::endl; 
+      //std::cout << std::endl << " Symmetry class size " <<  symm_classes.size() << "gf_obj num elements" << gf_obj.num_elements() << std::endl; 
       std::cout << std::endl << " Symmetries reduction " << 1.0 * symm_classes.size() / gf_obj.num_elements() << std::endl; 
    }
 
