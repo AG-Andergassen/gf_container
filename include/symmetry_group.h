@@ -122,10 +122,10 @@ class symmetry_grp_t
       void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func, int nranks=1, int myrank=0 )
       {
 #ifdef MPI_PARALLEL
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for( int i = myrank; i < symm_classes.size(); i += nranks )
 #else
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for( int i = 0; i < symm_classes.size(); ++i )
 #endif
 	 {

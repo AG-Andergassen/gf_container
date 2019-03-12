@@ -152,10 +152,10 @@ class gf: public boost::multi_array<value_t_, ndims_>
       void init( init_func_t init_func, int  nranks=1, int  myrank=0 )				///< Initializes values with a given initialization function
       {
 #ifdef MPI_PARALLEL
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for(int i=myrank; i< base_t::num_elements(); i+=nranks)
 #else
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
 #endif
 	    operator()( i ) = init_func( get_idx( i ) ); 
