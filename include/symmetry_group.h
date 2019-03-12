@@ -121,7 +121,7 @@ class symmetry_grp_t
 
       void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
       {
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for( int i = 0; i < symm_classes.size(); ++i )
 	 {
 	    elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 

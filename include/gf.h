@@ -151,7 +151,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
 
       void init( init_func_t init_func )				///< Initializes values with a given initialization function
       {
-#pragma omp parallel for schedule( dynamic )
+#pragma omp parallel for schedule( static )
 	 for( int i = 0; i < base_t::num_elements(); ++i )
 	    operator()( i ) = init_func( get_idx( i ) ); 
       }
