@@ -131,6 +131,16 @@ class symmetry_grp_t
 
       }
       
+      void init_batched( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
+      {
+#pragma omp for schedule(nonmonotonic:dynamic) nowait
+          for( int i = 0; i < symm_classes.size(); ++i )
+          {
+              elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) );
+              for( auto symm_idx : symm_classes[i] )
+              gf_obj( symm_idx.idx ) = symm_idx.oper( val );
+          }
+       }
 
       symmetry_grp_t( const type& symm_grp ):
 	 symm_lst( symm_grp.symm_lst ), symm_classes( symm_grp.symm_classes )
