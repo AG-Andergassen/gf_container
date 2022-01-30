@@ -1,0 +1,228 @@
+diff --git a/include/gf.h b/include/gf.h
+index 6abee84..131c129 100644
+--- a/include/gf.h
++++ b/include/gf.h
+@@ -120,7 +120,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
+       int get_pos_1d( const std::array<int, ndims>& idx_arr ) const	///< For a given index array, returns the corresponding position in a 1d array
+       {
+        int val = 0; 
+-	 for( int i = 0; i < ndims; ++i )
++	  for( unsigned int i = 0; i < ndims; ++i )
+ 	   {
+ 	       val += stride_arr[i]*( idx_arr[i] - idx_bases[i] ); 
+ 	        }
+@@ -132,7 +132,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
+    assert( pos_1d < base_t::num_elements() ); 
+     std::array<int, ndims> idx_arr; 
+ 
+-	 for( int i = 0; i < ndims; ++i )
++	  for( unsigned int i = 0; i < ndims; ++i )
+ 	   {
+ 	       idx_arr[i] = idx_bases[i] + pos_1d / stride_arr[i];
+ 	           pos_1d -= ( idx_arr[i] - idx_bases[i] ) * stride_arr[i]; 
+@@ -145,20 +145,20 @@ class gf: public boost::multi_array<value_t_, ndims_>
+       {
+        idx_lst.resize( base_t::num_elements() ); 
+ 
+-	 for( int i = 0; i < base_t::num_elements(); ++i )
++	  for( unsigned int i = 0; i < base_t::num_elements(); ++i )
+ 	      idx_lst[i] = get_idx( i ); 
+       }
+ 
+       void init( init_func_t init_func )				///< Initializes values with a given initialization function
+       {
+ #pragma omp parallel for schedule( static )
+-	  for( int i = 0; i < base_t::num_elements(); ++i )
++	   for( unsigned int i = 0; i < base_t::num_elements(); ++i )
+ 	       operator()( i ) = init_func( get_idx( i ) ); 
+       }
+ 
+       bool is_valid( const idx_t& idx ) const				///< Return value of container for given index object
+       {
+-       for( int i = 0; i < ndims; ++i )
++	 for( unsigned int i = 0; i < ndims; ++i )
+ 	     if( idx(i) >= idx_bases[i] + static_cast<int>(shape_arr[i]) || idx(i) < idx_bases[i] ) // fails without cast as shape_arr contains unsigned
+ 	            return false;
+ 		     return true; 
+@@ -192,6 +192,9 @@ class gf: public boost::multi_array<value_t_, ndims_>
+    base_t( std::move( static_cast<base_t&>(gf_obj) ) ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
+    {};
+ 
++      ~gf(){
++      }
++
+       type& operator=( const type& gf_obj )
+       {
+        base_t::operator=( static_cast<const base_t&>(gf_obj) ); 
+@@ -262,7 +265,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type abs( const
+    using std::abs; 
+ 
+    gf_t_ res( lhs ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       res(i) = abs(res(i)); 
+    return res; 
+ }
+@@ -284,7 +287,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, double >::type norm( cons
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( const gf_t_& lhs )
+ {
+    gf_t_ res( lhs ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       res(i) = -res(i); 
+    return res; 
+ }
+@@ -296,7 +299,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-(
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_& >::type operator+=( gf_t_& lhs, const gf_t_& rhs )
+ {
+    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) += rhs(i); 
+    return lhs; 
+ }
+@@ -315,7 +318,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator+(
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-=( gf_t_& lhs, const gf_t_& rhs )
+ {
+    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) -= rhs(i); 
+    return lhs; 
+ }
+@@ -334,7 +337,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-(
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*=( gf_t_& lhs, const gf_t_& rhs )
+ {
+    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) *= rhs(i); 
+    return lhs; 
+ }
+@@ -353,7 +356,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*(
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/=( gf_t_& lhs, const gf_t_& rhs )
+ {
+    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) /= rhs(i); 
+    return lhs; 
+ }
+@@ -375,7 +378,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/(
+ typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
+ operator+=( gf_t_& lhs, const scalar_t_& rhs )
+ {
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) += rhs; 
+    return lhs; 
+ }
+@@ -405,7 +408,7 @@ operator+( const scalar_t_& lhs, const gf_t_& rhs )
+ typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
+ operator-=( gf_t_& lhs, const scalar_t_& rhs )
+ {
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) -= rhs; 
+    return lhs; 
+ }
+@@ -435,7 +438,7 @@ operator-( const scalar_t_& lhs,  const gf_t_& rhs )
+ typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
+ operator*=( gf_t_& lhs, const scalar_t_& rhs )
+ {
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) *= rhs; 
+    return lhs; 
+ }
+@@ -465,7 +468,7 @@ operator*( const scalar_t_& lhs, const gf_t_& rhs )
+ typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
+ operator/=( gf_t_& lhs, const scalar_t_& rhs )
+ {
+-   for( int i = 0; i < lhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
+       lhs(i) /= rhs; 
+    return lhs; 
+ }
+@@ -485,7 +488,7 @@ operator/( const gf_t_& lhs, const scalar_t_& rhs )
+ typename boost::enable_if< is_instance_of_gf< gf_t_ >, std::ostream& >::type 
+ operator<<( std::ostream& lhs, const gf_t_& rhs )
+ {
+-   for( int i = 0; i < rhs.num_elements(); ++i )
++   for( unsigned int i = 0; i < rhs.num_elements(); ++i )
+       lhs << rhs(i) << " \t "; //std::endl; 
+       //lhs << rhs.get_idx(i) << " : " << rhs(i) << " ;\t "; //std::endl; 
+    return lhs; 
+diff --git a/include/symmetry_group.h b/include/symmetry_group.h
+index 1611f99..fa19e2b 100644
+--- a/include/symmetry_group.h
++++ b/include/symmetry_group.h
+@@ -117,12 +117,11 @@ class symmetry_grp_t
+       using init_func_t = boost::function<elem_t_ ( const idx_t& idx )>; 
+ 
+       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
+-//      static constexpr typename elem_t = elem_t_;                     ///< The number of dimensions        
+ 
+       void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
+       {
+ #pragma omp parallel for schedule( static )
+-	  for( int i = 0; i < symm_classes.size(); ++i )
++	   for( unsigned int i = 0; i < symm_classes.size(); ++i )
+ 	    {
+ 	        elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
+ 		    for( auto symm_idx : symm_classes[i] )
+@@ -134,7 +133,7 @@ class symmetry_grp_t
+       void init_batched( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
+       {
+ #pragma omp for schedule(nonmonotonic:dynamic) nowait
+-          for( int i = 0; i < symm_classes.size(); ++i )
++          for( unsigned int i = 0; i < symm_classes.size(); ++i )
+           {
+               elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) );
+               for( auto symm_idx : symm_classes[i] )
+@@ -146,7 +145,7 @@ class symmetry_grp_t
+    symm_lst( symm_grp.symm_lst ), symm_classes( symm_grp.symm_classes )
+    {}
+ 
+-      symmetry_grp_t( type&& symm_grp ):
++      symmetry_grp_t( type&& symm_grp ) noexcept :
+        symm_lst( symm_grp.symm_lst ), symm_classes( std::move( symm_grp.symm_classes ) )
+    {}
+ 
+@@ -157,7 +156,7 @@ class symmetry_grp_t
+    return *this; 
+       }
+ 
+-      type& operator=( type&& symm_grp )
++      type& operator=( type&& symm_grp ) noexcept
+       {
+        symm_lst = symm_grp.symm_lst; 
+ 	 symm_classes.operator=( std::move( symm_grp.symm_classes ) ); 
+@@ -171,15 +170,15 @@ class symmetry_grp_t
+    {
+       std::cout << " Initializing symmetry group for container of Length : " << ndims << std::endl; 
+       std::cout << "   Shape: "; 
+-      for( int i = 0; i < ndims; ++i )
++      for( unsigned int i = 0; i < ndims; ++i )
+        std::cout << shape_arr[i] << " "; 
+       std::cout << "   Idx_bases: "; 
+-      for( int i = 0; i < ndims; ++i )
++      for( unsigned int i = 0; i < ndims; ++i )
+        std::cout << idx_bases[i] << " ";
+ 
+       // For frequencies, consider going out of range with symmetry functions
+       
+-      for( int i = 0; i < ndims; ++i ){
++      for( unsigned int i = 0; i < ndims; ++i ){
+         if( idx_bases[i] != 0 ){
+             idx_bases[i] *= 2; 
+             shape_arr[i] *= 2; 
+@@ -219,7 +218,7 @@ class symmetry_grp_t
+ 
+       void iterate( const idx_t& idx_it, const gf<elem_t_,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
+       {
+-       for( auto symm: symm_lst )				// iterate over list of all symmetries specified
++	 for( const auto& symm: symm_lst ) 			   	   	// iterate over list of all symmetries specified
+ 	  {
+ 	      idx_t idx = idx_it;					// copy idx
+ 	          operation curr_op = symm( idx ) * track_op;		   // apply symmetry operation and track operations applied

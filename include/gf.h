@@ -120,7 +120,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
       int get_pos_1d( const std::array<int, ndims>& idx_arr ) const	///< For a given index array, returns the corresponding position in a 1d array
       {
 	 int val = 0; 
-	 for( int i = 0; i < ndims; ++i )
+	 for( unsigned int i = 0; i < ndims; ++i )
 	 {
 	    val += stride_arr[i]*( idx_arr[i] - idx_bases[i] ); 
 	 }
@@ -132,7 +132,7 @@ class gf: public boost::multi_array<value_t_, ndims_>
 	 assert( pos_1d < base_t::num_elements() ); 
 	 std::array<int, ndims> idx_arr; 
 
-	 for( int i = 0; i < ndims; ++i )
+	 for( unsigned int i = 0; i < ndims; ++i )
 	 {
 	    idx_arr[i] = idx_bases[i] + pos_1d / stride_arr[i];
 	    pos_1d -= ( idx_arr[i] - idx_bases[i] ) * stride_arr[i]; 
@@ -145,20 +145,20 @@ class gf: public boost::multi_array<value_t_, ndims_>
       {
 	 idx_lst.resize( base_t::num_elements() ); 
 
-	 for( int i = 0; i < base_t::num_elements(); ++i )
+	 for( unsigned int i = 0; i < base_t::num_elements(); ++i )
 	    idx_lst[i] = get_idx( i ); 
       }
 
       void init( init_func_t init_func )				///< Initializes values with a given initialization function
       {
 #pragma omp parallel for schedule( static )
-	 for( int i = 0; i < base_t::num_elements(); ++i )
+	 for( unsigned int i = 0; i < base_t::num_elements(); ++i )
 	    operator()( i ) = init_func( get_idx( i ) ); 
       }
 
       bool is_valid( const idx_t& idx ) const				///< Return value of container for given index object
       {
-	 for( int i = 0; i < ndims; ++i )
+	 for( unsigned int i = 0; i < ndims; ++i )
 	    if( idx(i) >= idx_bases[i] + static_cast<int>(shape_arr[i]) || idx(i) < idx_bases[i] ) // fails without cast as shape_arr contains unsigned
 	       return false;
 	 return true; 
@@ -191,6 +191,9 @@ class gf: public boost::multi_array<value_t_, ndims_>
       gf( type&& gf_obj ):
 	 base_t( std::move( static_cast<base_t&>(gf_obj) ) ), shape_arr( base_t::shape() ), stride_arr( base_t::strides() ), idx_bases( base_t::index_bases() ), data_ptr( base_t::data() ) 
    {};
+
+      ~gf(){
+      }
 
       type& operator=( const type& gf_obj )
       {
@@ -262,7 +265,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type abs( const 
    using std::abs; 
 
    gf_t_ res( lhs ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       res(i) = abs(res(i)); 
    return res; 
 }
@@ -284,7 +287,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, double >::type norm( cons
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( const gf_t_& lhs )
 {
    gf_t_ res( lhs ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       res(i) = -res(i); 
    return res; 
 }
@@ -296,7 +299,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_& >::type operator+=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) += rhs(i); 
    return lhs; 
 }
@@ -315,7 +318,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator+( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) -= rhs(i); 
    return lhs; 
 }
@@ -334,7 +337,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator-( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) *= rhs(i); 
    return lhs; 
 }
@@ -353,7 +356,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator*( 
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/=( gf_t_& lhs, const gf_t_& rhs )
 {
    assert( lhs.num_elements() == rhs.num_elements() && " Adding gf's of different size " ); 
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) /= rhs(i); 
    return lhs; 
 }
@@ -375,7 +378,7 @@ typename boost::enable_if< is_instance_of_gf< gf_t_ >, gf_t_ >::type operator/( 
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator+=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) += rhs; 
    return lhs; 
 }
@@ -405,7 +408,7 @@ operator+( const scalar_t_& lhs, const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator-=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) -= rhs; 
    return lhs; 
 }
@@ -435,7 +438,7 @@ operator-( const scalar_t_& lhs,  const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator*=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) *= rhs; 
    return lhs; 
 }
@@ -465,7 +468,7 @@ operator*( const scalar_t_& lhs, const gf_t_& rhs )
 typename boost::enable_if< boost::mpl::and_< is_instance_of_gf< gf_t_ >, is_scalar< scalar_t_> >, gf_t_& >::type 
 operator/=( gf_t_& lhs, const scalar_t_& rhs )
 {
-   for( int i = 0; i < lhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < lhs.num_elements(); ++i )
       lhs(i) /= rhs; 
    return lhs; 
 }
@@ -485,7 +488,7 @@ operator/( const gf_t_& lhs, const scalar_t_& rhs )
 typename boost::enable_if< is_instance_of_gf< gf_t_ >, std::ostream& >::type 
 operator<<( std::ostream& lhs, const gf_t_& rhs )
 {
-   for( int i = 0; i < rhs.num_elements(); ++i )
+   for( unsigned int i = 0; i < rhs.num_elements(); ++i )
       lhs << rhs(i) << " \t "; //std::endl; 
       //lhs << rhs.get_idx(i) << " : " << rhs(i) << " ;\t "; //std::endl; 
    return lhs; 

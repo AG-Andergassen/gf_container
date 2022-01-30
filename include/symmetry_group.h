@@ -117,12 +117,11 @@ class symmetry_grp_t
       using init_func_t = boost::function<elem_t_ ( const idx_t& idx )>; 
 
       static constexpr unsigned int ndims = ndims_;                     ///< The number of dimensions        
-//      static constexpr typename elem_t = elem_t_;                     ///< The number of dimensions        
 
       void init( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
       {
 #pragma omp parallel for schedule( static )
-	 for( int i = 0; i < symm_classes.size(); ++i )
+	 for( unsigned int i = 0; i < symm_classes.size(); ++i )
 	 {
 	    elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) ); 
 	    for( auto symm_idx : symm_classes[i] )
@@ -134,7 +133,7 @@ class symmetry_grp_t
       void init_batched( gf<elem_t_,ndims>& gf_obj, init_func_t init_func )
       {
 #pragma omp for schedule(nonmonotonic:dynamic) nowait
-          for( int i = 0; i < symm_classes.size(); ++i )
+          for( unsigned int i = 0; i < symm_classes.size(); ++i )
           {
               elem_t_ val = init_func( gf_obj.get_idx( symm_classes[i][0].idx ) );
               for( auto symm_idx : symm_classes[i] )
@@ -146,7 +145,7 @@ class symmetry_grp_t
 	 symm_lst( symm_grp.symm_lst ), symm_classes( symm_grp.symm_classes )
    {}
 
-      symmetry_grp_t( type&& symm_grp ):
+      symmetry_grp_t( type&& symm_grp ) noexcept:
 	 symm_lst( symm_grp.symm_lst ), symm_classes( std::move( symm_grp.symm_classes ) )
    {}
 
@@ -157,7 +156,7 @@ class symmetry_grp_t
 	 return *this; 
       }
 
-      type& operator=( type&& symm_grp )
+      type& operator=( type&& symm_grp ) noexcept
       {
 	 symm_lst = symm_grp.symm_lst; 
 	 symm_classes.operator=( std::move( symm_grp.symm_classes ) ); 
@@ -171,15 +170,15 @@ class symmetry_grp_t
    {
       std::cout << " Initializing symmetry group for container of Length : " << ndims << std::endl; 
       std::cout << "   Shape: "; 
-      for( int i = 0; i < ndims; ++i )
+      for( unsigned int i = 0; i < ndims; ++i )
 	 std::cout << shape_arr[i] << " "; 
       std::cout << "   Idx_bases: "; 
-      for( int i = 0; i < ndims; ++i )
+      for( unsigned int i = 0; i < ndims; ++i )
 	 std::cout << idx_bases[i] << " ";
 
       // For frequencies, consider going out of range with symmetry functions
       
-      for( int i = 0; i < ndims; ++i ){
+      for( unsigned int i = 0; i < ndims; ++i ){
         if( idx_bases[i] != 0 ){
             idx_bases[i] *= 2; 
             shape_arr[i] *= 2; 
@@ -219,7 +218,7 @@ class symmetry_grp_t
 
       void iterate( const idx_t& idx_it, const gf<elem_t_,ndims>& gf_obj,  const operation& track_op, gf<bool,ndims>& checked, std::vector< symm_idx_t >& current_class  )
       {
-	 for( auto symm: symm_lst ) 				// iterate over list of all symmetries specified
+	 for( const auto& symm: symm_lst ) 				// iterate over list of all symmetries specified
 	 {
 	    idx_t idx = idx_it;					// copy idx
 	    operation curr_op = symm( idx ) * track_op;		// apply symmetry operation and track operations applied
