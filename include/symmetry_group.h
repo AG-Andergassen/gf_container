@@ -12,7 +12,6 @@
 #include <gf.h>
 #include <complex>
 #include <iostream>
-#include <def.h>
 /**
  *	Set of possible operations after symmetry operation
  */
@@ -48,8 +47,8 @@ class operation : public std::pair<bool, bool>
 
 	 return val; 
       }
-      
-      MatReal operator()( const MatReal val )		///< Apply operation
+  
+  Eigen::Matrix<dcomplex, Eigen::Dynamic, 1> operator()( const Eigen::Matrix<dcomplex, Eigen::Dynamic, 1> val )		///< Apply operation
       {
 	 if( first )
 	 {
@@ -63,7 +62,7 @@ class operation : public std::pair<bool, bool>
 
 	 return val; 
       }
-      
+  /*    
       MatPatch operator()( const MatPatch val )		///< Apply operation
       {
 	 if( first )
@@ -78,7 +77,7 @@ class operation : public std::pair<bool, bool>
 
 	 return val; 
       }
-
+  */
    private:
 };
 
