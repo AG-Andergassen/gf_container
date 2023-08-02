@@ -23,7 +23,7 @@
 #include <boost/bind.hpp>
 
 using boost::multi_array_types::extent_range;
-s using boost::multi_array_types::extent_gen;
+using boost::multi_array_types::extent_gen;
 using boost::multi_array; 
 
    template <class T, std::size_t N>
