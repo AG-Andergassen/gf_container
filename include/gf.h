@@ -23,18 +23,8 @@
 #include <boost/bind.hpp>
 
 using boost::multi_array_types::extent_range;
-using boost::multi_array_types::extent_gen;
+s using boost::multi_array_types::extent_gen;
 using boost::multi_array; 
-
-inline extent_range ffreq( int n )
-{
-   return extent_range( -n, n );   // range [ -n , n )
-}
-
-inline extent_range bfreq( int n )
-{
-   return extent_range( -n, n + 1 );   // range [ -n , n + 1 )
-}
 
    template <class T, std::size_t N>
 std::ostream& operator<<( std::ostream& os, const std::array<T, N>& arr )
