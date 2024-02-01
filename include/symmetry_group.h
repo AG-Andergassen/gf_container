@@ -49,6 +49,7 @@ class operation : public std::pair<bool, bool>
       }
       
       Eigen::Matrix<dcomplex, Eigen::Dynamic, 1> operator()( const Eigen::Matrix<dcomplex, Eigen::Dynamic, 1> val )		///< Apply operation
+
       {
 	 if( first )
 	 {
@@ -62,21 +63,6 @@ class operation : public std::pair<bool, bool>
 
 	 return val; 
       }
-      /*
-      MatPatch operator()( const MatPatch val )		///< Apply operation
-      {
-	 if( first )
-	 {
-	    if( second )
-	       return -val.conjugate(); 
-	    return -val; 
-	 }
-
-	 if( second )
-	    return val.conjugate() ; 
-
-	 return val; 
-	 }*/
 
    private:
 };
