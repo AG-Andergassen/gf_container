@@ -26,16 +26,6 @@ using boost::multi_array_types::extent_range;
 using boost::multi_array_types::extent_gen;
 using boost::multi_array; 
 
-inline extent_range ffreq( int n )
-{
-   return extent_range( -n, n );   // range [ -n , n )
-}
-
-inline extent_range bfreq( int n )
-{
-   return extent_range( -n, n + 1 );   // range [ -n , n + 1 )
-}
-
    template <class T, std::size_t N>
 std::ostream& operator<<( std::ostream& os, const std::array<T, N>& arr )
 {
@@ -65,6 +55,11 @@ class idx_obj_t							///< Index type that will be associated to each container
 	 {
 	    return idx_arr[int(val)]; 
 	 }
+
+      bool operator==(const idx_obj_t &idx2) const
+      {
+	  return idx_arr == idx2.idx_arr;
+      }
 
       inline int* data()			///< Pointer to first data element
       {
@@ -154,6 +149,37 @@ class gf: public boost::multi_array<value_t_, ndims_>
 #pragma omp parallel for schedule( static )
 	 for( unsigned int i = 0; i < base_t::num_elements(); ++i )
 	    operator()( i ) = init_func( get_idx( i ) ); 
+      }
+
+      void init_at_sampling_indices(init_func_t init_func, const std::vector<unsigned> &sampling_indices)
+      {
+#pragma omp parallel for schedule( static )
+	  for( unsigned i = 0; i <  sampling_indices.size(); i ++ )
+	      operator()( sampling_indices[i] ) = init_func( get_idx( sampling_indices[i] ) ); 	  
+      }
+
+      std::pair<std::vector<unsigned>, std::vector<unsigned> > filter_indices( std::vector< std::pair<unsigned, std::vector<int> > > filters) // each element looks like {idxkey, idx_values}
+      {
+	  std::vector<unsigned> filtered_indices;
+	  std::vector<unsigned> residual_indices;
+#pragma omp parallel for schedule( static )
+	  for( unsigned int i = 0; i < base_t::num_elements(); ++i ) {
+	      bool is_filtered = false;
+	      for (auto f : filters){
+		  const unsigned idx_key = f.first;
+		  const std::vector<int> kept_idxes_components = f.second;
+		  auto result = std::find(kept_idxes_components.begin(), kept_idxes_components.end(), get_idx(i)(idx_key));
+		  if (result != kept_idxes_components.end()){
+		      filtered_indices.push_back(i);
+		      is_filtered = true;
+		      break;
+		  } 
+	      }
+	      if (! is_filtered)
+		  residual_indices.push_back(i);
+	  }
+
+	  return std::make_pair(filtered_indices, residual_indices);
       }
 
       bool is_valid( const idx_t& idx ) const				///< Return value of container for given index object

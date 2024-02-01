@@ -1,0 +1,105 @@
+
+
+
+
+class gf_interpolator_t
+{
+    interpolator_info_t(symmetry_grp_t &equiv_class)
+    {
+	for (int i = 0; i < equiv_class.filters.size(); i ++){
+	    auto &filter = equiv_class.filters[i]; // a filter is a pair looking like {idxkey, idx_values}
+	    sampling_idxes.push_back(filter.second);
+	    interpolated_idxes_components.push_back(filter.first);
+	    interpolators_1d_indices.push_back({});
+	    for (auto idx : equiv_class.interpolating_gf_indices){ // just going over interpolated indices should be fine
+		gf_idx(interpolated_idxes_components.back()) = 0;
+		// check if unique
+		auto result = std::find(interpolators_1d_indices[i].begin(), interpolators_1d_indices[i].end(), gf_idx);
+		if (result == interpolators_1d_indices[i].end()){
+		    interpolators_1d_indices[i].push_back(gf_idx);
+		}
+	    }
+	}
+
+	// weights
+	
+
+	std::vector< std::vector<double> > dims_weights;
+
+	for (int i = 0; i < sampling_idxes.size(); i ++){
+	    int small_sample_xval_idx = 0;
+	    for (int x_val = sampling_idxes[i][0]; x_val <= sampling_idxes[i].back(); x_val ++){ 
+		if (sampling_idxes[i][small_sample_xval_idx + 1] < x_val)
+		    small_sample_xval_idx += 1;
+		dims_weights[i].push_back( (x_val - sampling_idxes[i][small_sample_xval_idx])/(sampling_idxes[i][small_sample_xval_idx+1] - sampling_idxes[i][small_sample_xval_idx]) );
+	    }
+	}
+
+	//e.g. weights[0] == 'u', weights[1] == 'v', weights[2] == 'w'
+	
+	int array_size = 1;
+	std::vector<int> dims_sizes;
+	for (int i = 0; i < dims_weights.size(); i ++){
+	    dims_sizes = i;
+	    array_size *=dims_weights[i].size();
+	}
+
+	std::vector<double> multilinear_weights(array_size);
+	
+	for (int i = 0; i < array_size; i ++){
+	    double weight = 1;
+	    for (int j = 0; j < dims_weights.size(); j++){
+		coord = i %  
+	    }
+	}
+	
+	
+	
+    }  
+
+    
+
+    void make_interpolators(gf_obj)
+    {
+	for (int i = 0; i < interpolators_1d_indices.size(); i ++){
+	    make_interpolator_1d(gf_obj, x_sampling_idxes[i], interpolated_idxes_components[i]);
+	}
+    }
+
+    void make_interpolator_1d(gf_obj, int x_component, const std::vector<double> x_sampling_idxes) // create interpolated function over x in G(..., x) with '...' corresponding to the remaining arguments/indices
+    {
+	for (int gf_idx_idx = 0; i < interpolators_1d_indices[interpolator_1d_index].size(); i ++){
+	    idx_t gf_idx = interpolators_1d_indices[interpolator_1d_index][gf_idx_idx];
+	    std::vector<double> gf_vals_real, gf_vals_imag, x_vals = x_sampling_idxes, x_vals2 = x_sampling_idxes;
+	    gf_vals_real.reserve(x_sampling_idxes.size());
+	    gf_vals_imag.reserve(x_sampling_idxes.size());
+	    for (auto x : x_sampling_idxes){
+		gf_idx(x_component) = x; 
+		const std::complex<double> &gf_obj_val_at_x = gf_obj(gf_idx);
+		gf_vals_real.push_back( gf_obj_val_at_x.real );
+		gf_vals_imag.push_back( gf_obj_val_at_x.imag );
+	    }
+	    gf_idx(x_component) = 0;
+	    interpolators_1d_real[interpolator_1d_index](gf_idx)* = boost::math::interpolators::pchip<std::vector<double> >(std::move(x_vals), std::move(gf_vals_real));
+	    interpolators_1d_imag[interpolator_1d_index](gf_idx)* = boost::math::interpolators::pchip<std::vector<double> >(std::move(x_vals2), std::move(gf_vals_imag));
+	}
+    }
+
+    void eval_gf(gf_obj, gf_idx)
+    {
+	((x - c0)*gf_obj + (c1 - x)*gf_obj)/(c1 - c0);
+       
+
+	weights[i].first;
+	weights[i].second;	    	    
+    }
+
+    std::vector<gf_1d> left_weights, right_weights;
+    std::vector<int> interpolated_idxes_components;
+    std::vector<int> x_sampling_idxes;
+    std::vector< std::vector<idx_t> > interpolators_1d_indices;
+    
+    std::vector< boost::multi_array<boost::math::interpolators::pchip<std::vector<double> > , n_dims> > interpolators_1d_real;
+    std::vector< boost::multi_array<boost::math::interpolators::pchip<std::vector<double> > , n_dims> > interpolators_1d_imag;
+};
+
